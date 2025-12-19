@@ -27,8 +27,26 @@ The project is organized to support global configurations (`all`) and environmen
 ├── .yamllint                 # Rules for YAML syntax validation
 └── README.md                 # Project documentation
 
+```
+## Requirements
 
-📄 File Descriptions**
+The supported collections that contains the modules are required for this collection to work, you can copy this requirements.yml file example.
+
+```yaml
+---
+collections:
+  - name: infra.aap_configuration
+  - name: infra.ee_utilities
+  - name: infra.aap_utilities
+  - name: containers.podman
+  - name: ansible.platform
+  - name: ansible.hub
+  - name: ansible.controller
+  - name: ansible.eda
+...
+```
+
+## 📄 File Descriptions
 
 🔧 Configuration Files (/config)
 These files contain the desired state of your AAP components. Instead of clicking in the UI, you define objects here.
@@ -38,39 +56,39 @@ These files act as the "source of truth" for your global baseline setup.
 
 🎮 Automation Controller Configurations
 
-controller_credential_input_sources.yml: Configures external secret managers (HashiCorp Vault, CyberArk, etc.).
-
-controller_credential_types.yml: Defines custom metadata and input fields for non-native credentials.
-
-controller_credentials.yml: Primary list of auth for SCM, Cloud, and SSH.
-
-controller_execution_environments.yml: Registers container images (EEs) providing the Ansible runtime.
-
-controller_groups.yml: Defines logical groupings of hosts within your inventories.
-
-controller_hosts.yml: Global list of managed nodes and host-level variables.
-
-controller_instance_groups.yml: Groups execution nodes to dedicate hardware to certain tasks.
-
-controller_inventories.yml: Creates top-level inventory objects.
-
-controller_inventory_sources.yml: Configures dynamic syncs (AWS, Azure, VMware, etc.).
-
-controller_job_templates.yml: Defines the "How-To" for running a playbook.
-
-controller_labels.yml: Metadata tags for filtering job templates.
-
-controller_notifications.yml: Communication channels (Slack, Email, PagerDuty).
-
-controller_projects.yml: Links Controller to Git repositories where code is stored.
-
-controller_roles.yml: Manages RBAC permission assignments.
-
-controller_schedule.yml: Automates execution at specific times.
-
-controller_settings.yml: Global system parameters (LDAP, logging, etc.).
-
-controller_workflows.yml: Chains multiple job templates into visual flows.
+  controller_credential_input_sources.yml: Configures external secret managers (HashiCorp Vault, CyberArk, etc.).
+  
+  controller_credential_types.yml: Defines custom metadata and input fields for non-native credentials.
+  
+  controller_credentials.yml: Primary list of auth for SCM, Cloud, and SSH.
+  
+  controller_execution_environments.yml: Registers container images (EEs) providing the Ansible runtime.
+  
+  controller_groups.yml: Defines logical groupings of hosts within your inventories.
+  
+  controller_hosts.yml: Global list of managed nodes and host-level variables.
+  
+  controller_instance_groups.yml: Groups execution nodes to dedicate hardware to certain tasks.
+  
+  controller_inventories.yml: Creates top-level inventory objects.
+  
+  controller_inventory_sources.yml: Configures dynamic syncs (AWS, Azure, VMware, etc.).
+  
+  controller_job_templates.yml: Defines the "How-To" for running a playbook.
+  
+  controller_labels.yml: Metadata tags for filtering job templates.
+  
+  controller_notifications.yml: Communication channels (Slack, Email, PagerDuty).
+  
+  controller_projects.yml: Links Controller to Git repositories where code is stored.
+  
+  controller_roles.yml: Manages RBAC permission assignments.
+  
+  controller_schedule.yml: Automates execution at specific times.
+  
+  controller_settings.yml: Global system parameters (LDAP, logging, etc.).
+  
+  controller_workflows.yml: Chains multiple job templates into visual flows.
 
 ⚡ Event-Driven Ansible (EDA)
 
@@ -106,7 +124,8 @@ gateway_teams.yml / gateway_users.yml: Manages global identity across the platfo
 
 ee_list.yml: Master list used to build/manage multiple Execution Environments.
 
-🏗️ Environment-Specific Configuration (Prod & Test)
+## 🏗️ Environment-Specific Configuration (Prod & Test)
+
 The files under config/prod/, config/test/ or config/<env>/ allow you to customize settings for each stage of your SDLC.
 
 📂 Folder Logic: How it Works
@@ -118,19 +137,19 @@ Apply env: Layers files from config/prod/ or config/test/ on top.
 
 Conflict Resolution: If an object exists in both, the environment-specific version takes precedence.
 
-🖥️ Inventory Files (/inventory)
+## 🖥️ Inventory Files (/inventory)
 inventory_dev.yml: Hostnames/IPs for the Development cluster.
 
 inventory_prod.yml: Hostnames/IPs for the Production infrastructure.
 
-🚀 Playbooks (/playbooks)
+## 🚀 Playbooks (/playbooks)
 install_aap.yml: Automated platform installation using infra.aap_utilities.
 
 aap_config.yml: Syncs /config files to the AAP Controller/Hub UI.
 
 install_configure.yml: "Day 0" playbook performing installation and configuration in one run.
 
-🚀 Usage and Execution
+## 🚀 Usage and Execution
 The logic relies on the env variable to determine which configuration files and variables to load.
 
 🔑 Prerequisites
@@ -139,6 +158,7 @@ Decrypt Vault: Ensure vault.yml is populated with required tokens.
 Update Inventories: Replace HERE placeholders in inventory files with actual hostnames.
 
 🛠️ Scenario 1: Provisioning a New Environment (Day 0)
+
 For Development:
 
 
@@ -155,6 +175,7 @@ ansible-playbook -i inventory/inventory_prod.yml \
                  playbooks/install_configure.yml \
                  --ask-vault-pass \
                  -e "env=prod"
+                 
 🔄 Scenario 2: Syncing Configuration (Day 2 Operations)
 Sync Development:
 
@@ -174,6 +195,7 @@ ansible-playbook -i inventory/inventory_prod.yml \
                  playbooks/aap_config.yml \
                  --ask-vault-pass \
                  -e "env=prod"
+                 
 🧪 Scenario 3: Testing Configuration (Dry Run)
 
 
