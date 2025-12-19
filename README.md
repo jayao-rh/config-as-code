@@ -1,4 +1,5 @@
 **Ansible Automation Platform - Configuration as Code (CaC)**
+
 This repository serves as a template and comprehensive example for deploying and managing Red Hat Ansible Automation Platform (AAP) 2.5+ using Configuration as Code. It leverages the Red Hat Community of Practice (CoP) collections to provide a multi-environment (Dev/Test/Prod) framework for managing Controller, Automation Hub, and EDA configurations.
 
 📂 Repository Structure
