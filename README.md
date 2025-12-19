@@ -1,93 +1,191 @@
-# Ansible Automation Platform Configuration as Code examples template
+**Ansible Automation Platform - Configuration as Code (CaC)**
+This repository serves as a template and comprehensive example for deploying and managing Red Hat Ansible Automation Platform (AAP) 2.5+ using Configuration as Code. It leverages the Red Hat Community of Practice (CoP) collections to provide a multi-environment (Dev/Test/Prod) framework for managing Controller, Automation Hub, and EDA configurations.
 
-This is a combination of all the Red Hat CoP Config as Code collections to deploy and configure AAP. This is built for multi environment (meaning multiple AAP instances/clusters). If you want an object across all environments put it in the correct file/list under the all group. If there is a specific object for only one environment then put it under that environments folder[^1].
+📂 Repository Structure
+The project is organized to support global configurations (all) and environment-specific overrides.
 
-[^1]: If you only have/want one environment you could delete dev/test/prod folders in group_vars and remove all the _all added to vars in all group. Also if you want to have each team/group maintain their own org/code in their own repo, see the repo_per_org branch.
+Plaintext
 
-The main branch is built for 2.5+ AAP if you are running 2.4 or lower make sure to copy the template branch aap2.4
+.
+├── changelogs/             # History of configuration changes
+├── collections/            # requirements.yml for necessary Ansible collections
+├── config/                 # YAML files defining AAP objects (Orgs, Users, Job Templates, etc.)
+├── inventory/              # Inventory files defining the AAP infrastructure nodes
+├── playbooks/              # Playbooks to trigger installation and configuration
+│   ├── aap_config.yml      # Main playbook for pushing configuration to AAP
+│   ├── install_aap.yml     # Playbook for automated AAP installation
+│   └── install_configure.yml # Combined installer and config playbook
+├── group_vars/             # Variables categorized by group (All, Dev, Test, Prod)
+│   ├── all/                # Global settings applied to all environments
+│   ├── dev/                # Overrides specific to Development
+│   ├── test/               # Overrides specific to Testing
+│   └── prod/               # Overrides specific to Production
+├── .ansible-lint           # Rules for ansible-lint code quality
+├── .yamllint               # Rules for YAML syntax validation
+└── README.md               # Project documentation
+📄 File Descriptions
+🔧 Configuration Files (/config)
+These files contain the desired state of your AAP components. Instead of clicking in the UI, you define objects here:
 
-You will need to replace the vault files with your own with these variables:
+🔧 **config/all directory**: These files act as the "source of truth" for your Ansible Automation Platform (AAP) 2.5 setup.
 
-```yaml
----
-console_token: 'this is the one from console.redhat.com'
-redhat_api_token: 'this is the one linked below about api token'
-rh_username: 'redhat user login (this is used to attach your subs to controller)'
-rh_password: 'password for redhat account'
-root_machine_pass: 'password for root user on builder (if not root user more changes will need to be made)'
-hub_api_user_pass: 'this will create and use this password can be generated'
-controller_api_user_pass: 'this will create and use this password can be generated'
-aap_pass: 'admin account pass for gateway, if none is given it will default to Password1234!'
-hub_pass: 'hub admin account pass, if none is given it will default to Password1234!'
-# hub_token: 'hub token to pull collections, it is best to save in vault for more reliable usage vs generating on the fly'
-vault_pass: 'the password to decrypt this vault'
-...
-```
+    🎮 Automation Controller Configurations
+    These files define the core automation objects within the Controller (formerly Tower).
+    
+    controller_credential_input_sources.yml: Configures external secret managers (like HashiCorp Vault, CyberArk, or AWS Secrets Manager) so Controller can pull credentials dynamically.
+    
+    controller_credential_types.yml: Defines custom metadata and input fields for unique credentials that aren't natively supported (e.g., custom API tokens).
+    
+    controller_credentials.yml: The primary list of credentials (SSH keys, Cloud tokens, SCM tokens) used to access managed nodes and external services.
+    
+    controller_execution_environments.yml: Registers the container images (EEs) that provide the Ansible runtime and specific collections/libraries needed for jobs.
+    
+    controller_groups.yml: Defines logical groupings of hosts within your inventories for targeted automation.
+    
+    controller_hosts.yml: The global list of managed nodes (IPs or FQDNs) and their specific host-level variables.
+    
+    controller_instance_groups.yml: Groups Controller execution nodes together, allowing you to dedicate specific hardware to certain tasks or organizations.
+    
+    controller_inventories.yml: Creates the top-level inventory objects that act as containers for your hosts and groups.
+    
+    controller_inventory_sources.yml: Configures "Dynamic Inventory" syncs from sources like AWS, Azure, VMware, or even a different Controller instance.
+    
+    controller_job_templates.yml: Defines the "How-To" for running a playbook: links a Project, Inventory, and Credential into an executable task.
+    
+    controller_labels.yml: Creates tags/labels used to organize and filter job templates and other objects across the UI.
+    
+    controller_notifications.yml: Sets up the communication channels (Slack, Email, PagerDuty, Webhooks) that receive status updates from jobs.
+    
+    controller_projects.yml: Links the Controller to your Git repositories (GitHub/GitLab) where the actual Ansible code is stored.
+    
+    controller_roles.yml: Manages RBAC (Role-Based Access Control) by assigning permissions to users or teams for specific objects.
+    
+    controller_schedule.yml: Automates the execution of job templates or project syncs at specific times (e.g., every Monday at 2 AM).
+    
+    controller_settings.yml: Controls global Controller parameters like LDAP integration, logging levels, and job isolation settings.
+    
+    controller_workflows.yml: Chinas multiple job templates together into a single visual flow with success/failure logic (DAGs).
+    
+    ⚡ Event-Driven Ansible (EDA)
+    These files manage the newer Event-Driven capabilities of AAP.
+    
+    eda_credentials.yml: Stores credentials specifically needed for EDA to listen to event streams (e.g., Kafka auth or Webhook tokens).
+    
+    eda_decision_environments.yml: Similar to EEs, these define the containers that run the EDA rulebooks.
+    
+    eda_projects.yml: Links Git repositories containing the .yml rulebooks that define "If event X happens, run Job Y."
+    
+    eda_rulebook_activations.yml: Manages the active, running instances of rulebooks that are currently listening for events.
+    
+    📦 Private Automation Hub
+    These files configure the local repository for Ansible Collections and Execution Environments.
+    
+    hub_collection_namespaces.yml: Defines the organizational namespaces (e.g., my_company.my_team) for internal collections.
+    
+    hub_collection_publish.yml: Manages settings for publishing and approving new collection versions.
+    
+    hub_collection_repositories.yml: Configures the local collection repositories and their distribution policies.
+    
+    hub_ee_images.yml: Manages the specific container images stored within the Hub's registry.
+    
+    hub_ee_registries.yml: Links Hub to external registries (like registry.redhat.io) for mirroring images.
+    
+    hub_ee_repositories.yml: Defines the actual image repositories within Hub where EEs are organized.
+    
+    🚪 AAP Gateway & General Utilities
+    These files manage the unified interface (Gateway) and shared execution resources.
+    
+    gateway_applications.yml: Defines OAuth2 applications for external integrations with the AAP Gateway.
+    
+    gateway_organizations.yml: Top-level multi-tenancy structure that spans across Controller and Hub through the unified Gateway.
+    
+    gateway_teams.yml / gateway_users.yml: Manages global users and teams across the entire platform.
+    
+    ee_list.yml: A centralized master list used by automation scripts to build or manage multiple Execution Environments at once.
 
-**_NOTE:_** Do not forget to update your inventory files replacing the `HERE` lines, if you do not have a `builder` server you can use `hub` for this. Also update `scm_url` in `group_vars/all/projects.yml` with your git URL.
+**🏗️ Environment-Specific Configuration (Prod & Test)**
+The following files under config/prod/, config/test/ or config/<any environment> allow you to customize settings for each stage of your SDLC:
 
-## Getting Help
-
-We are on the Ansible Forums and Matrix, if you want to discuss something, ask for help, or participate in the community, please use the #infra-config-as-code tag on the fourm, or post to the chat in Matrix.
-
-[Ansible Forums](https://forum.ansible.com/tag/infra-config-as-code)
-
-[Matrix Chat Room](https://matrix.to/#/#aap_config_as_code:ansible.com)
-
-## Requirements
-
-The supported collections that contains the modules are required for this collection to work, you can copy this requirements.yml file example.
-
-```yaml
----
-collections:
-  - name: ansible.platform
-  - name: ansible.hub
-  - name: ansible.controller
-  - name: ansible.eda
-  - name: infra.aap_configuration
-...
-```
+  
+  📂 Folder Logic: How it Works
+  When you run the configuration playbooks, the infra.aap_configuration collection uses a "Merge" strategy:
+  
+  Load all: It first loads the global standards and baseline objects from config/all/.
+  
+  Apply env: It then layers the files from config/prod/ or config/test/ on top.
+  
+  Conflict Resolution: If an object (like a specific Job Template name) exists in both, the version in the environment folder takes precedence. Otherwise, the lists are combined.
 
 
-## Links to Ansible Automation Platform Collections
+🖥️ **Inventory Files (/inventory)**
+inventory_dev.yml: Defines the hostnames/IPs for the Development AAP cluster (Controller, Hub, Database, etc.).
 
-|                                      Collection Name                                |            Purpose            |
-|:-----------------------------------------------------------------------------------:|:-----------------------------:|
-| ansible.platform repo (no public repo for this collection)                          | gateway/platform modules      |
-| [ansible.hub repo](https://github.com/ansible-collections/ansible_hub)              | Automation hub modules        |
-| [ansible.controller repo](https://github.com/ansible/awx/tree/devel/awx_collection) | Automation controller modules |
-| [ansible.eda repo](https://github.com/ansible/event-driven-ansible)                 | Event Driven Ansible modules  |
+inventory_prod.yml: Defines the Production infrastructure.
 
-## Links to other Validated Configuration Collections for Ansible Automation Platform
+🚀 **Playbooks (/playbooks)**
+install_aap.yml: Uses the infra.aap_utilities roles to automate the installation of the platform using a Red Hat manifest.
 
-|                                      Collection Name                                       |                      Purpose                      |
-|:------------------------------------------------------------------------------------------:|:-------------------------------------------------:|
-| [AAP Configuration Extended](https://github.com/redhat-cop/aap_configuration_extended)     | Where other useful roles that don't fit here live |
-| [EE Utilities](https://github.com/redhat-cop/ee_utilities)                                 | Execution Environment creation utilities          |
-| [AAP installation Utilities](https://github.com/redhat-cop/aap_utilities)                  | Ansible Automation Platform Utilities             |
-| [AAP Configuration Template](https://github.com/redhat-cop/aap_configuration_template)     | Configuration Template for this suite             |
+aap_config.yml: The "Sync" playbook. It reads the files in /config and ensures the AAP Controller/Hub UI matches the code.
 
-## AAP config
+install_configure.yml: A "Day 0" playbook that performs both the installation and the initial configuration in one run.
 
-`ansible-playbook -i inventory_dev.yml -l dev playbooks/aap_config.yml --ask-vault-pass`
 
-## custom ee
+**🚀 Usage and Execution**
+This repository is designed to be executed using the ansible-playbook command. The logic relies on the env variable to determine which configuration files and variables to load.
 
-currently doesn't work in CLI, expected to be run in Controller
+🔑 Prerequisites before Running
+Decrypt your Vault: Ensure your vault.yml is populated with the required tokens and passwords.
 
-## custom collections
+Update Inventories: Ensure the HERE placeholders in inventory/inventory_dev.yml and inventory_prod.yml are replaced with your actual AAP hostnames.
 
-currently doesn't work in CLI, expected to be run in Controller
+🛠️ Scenario 1: Provisioning a New Environment (Day 0)
+If you are installing AAP for the first time and want to apply the configuration immediately after the install:
 
-## aap utilities (aap installer)
+For Development:
 
-`ansible-playbook -i inventory_dev.yml playbooks/install_aap.yml --ask-vault-pass`
+ansible-playbook -i inventory/inventory_dev.yml \
+                 playbooks/install_configure.yml \
+                 --ask-vault-pass \
+                 -e "env=dev"
+For Production:
 
-Acquire your token at [redhat api](https://access.redhat.com/management/api/) see [access article](https://access.redhat.com/articles/3626371)
+ansible-playbook -i inventory/inventory_prod.yml \
+                 playbooks/install_configure.yml \
+                 --ask-vault-pass \
+                 -e "env=prod"
+                 
+🔄 Scenario 2: Syncing Configuration (Day 2 Operations)
+Use this when you have modified files in the config/ folder (e.g., added a new Job Template or User) and want to push those changes to the existing AAP instance.
 
-## install and configure
+Sync Development:
 
-`ansible-playbook -i inventory_dev.yml -l dev playbooks/install_configure.yml --ask-vault-pass -e "env=dev"`
 
-Acquire your token at [redhat api](https://access.redhat.com/management/api/) see [access article](https://access.redhat.com/articles/3626371)
+ansible-playbook -i inventory/inventory_dev.yml \
+                 -l dev \
+                 playbooks/aap_config.yml \
+                 --ask-vault-pass \
+                 -e "env=dev"
+Sync Production:
+
+
+ansible-playbook -i inventory/inventory_prod.yml \
+                 -l prod \
+                 playbooks/aap_config.yml \
+                 --ask-vault-pass \
+                 -e "env=prod"
+🧪 Scenario 3: Testing Configuration (Dry Run)
+It is highly recommended to run a "Check Mode" (Dry Run) before pushing changes to Production to see what Ansible would change without actually making the changes.
+
+
+ansible-playbook -i inventory/inventory_prod.yml \
+                 -l prod \
+                 playbooks/aap_config.yml \
+                 --ask-vault-pass \
+                 -e "env=prod" \
+                 --check
+📈 Execution Logic
+When you run the commands above, the automation follows this precedence:
+
+Load Global Defaults: It reads every file in config/all/.
+
+Load Environment Overrides: It looks in config/{{ env }}/. If a file exists there, it will append to or override the global list.
