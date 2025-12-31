@@ -19,11 +19,7 @@ The project is organized to support global configurations (`all`) and environmen
 │   ├── install_aap.yml       # Playbook for automated AAP installation
 │   └── install_configure.yml # Combined installer and config playbook
 |── rulebooks/                # Rulebooks triggered by events
-├── vars/                     # Variables categorized by group (All, Dev, Test, Prod)
-│   ├── all/                  # Global settings applied to all environments
-│   ├── dev/                  # Overrides specific to Development
-│   ├── test/                 # Overrides specific to Testing
-│   └── prod/                 # Overrides specific to Production
+├── vars/                     # Global variables
 ├── .ansible-lint             # Rules for ansible-lint code quality
 ├── .yamllint                 # Rules for YAML syntax validation
 └── README.md                 # Project documentation
