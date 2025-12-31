@@ -18,7 +18,8 @@ The project is organized to support global configurations (`all`) and environmen
 │   ├── aap_config.yml        # Main playbook for pushing configuration to AAP
 │   ├── install_aap.yml       # Playbook for automated AAP installation
 │   └── install_configure.yml # Combined installer and config playbook
-├── group_vars/               # Variables categorized by group (All, Dev, Test, Prod)
+|── rulebooks/                # Rulebooks triggered by events
+├── vars/                     # Variables categorized by group (All, Dev, Test, Prod)
 │   ├── all/                  # Global settings applied to all environments
 │   ├── dev/                  # Overrides specific to Development
 │   ├── test/                 # Overrides specific to Testing
